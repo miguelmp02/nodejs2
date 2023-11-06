@@ -1,34 +1,31 @@
 const http = require('http');
 const fs = require('fs');
+const url = require('url');
 
-// Lee el diccionario de palabras desde un archivo (asegúrate de tener un archivo con una palabra por línea).
-const dictionary = fs.readFileSync('dictionary.txt', 'utf8').split('\n');
+const diccionario = fs.readFileSync('diccionario.txt', 'utf8').split('\n');
 
 const server = http.createServer((req, res) => {
-  if (req.url === '/') {
-    // Obtiene el número de palabras (X) desde la query de la URL.
-    const query = new URL(req.url, `http://${req.headers.host}`).searchParams;
-    const numberOfWords = parseInt(query.get('x')) || 4; // Si no se proporciona x, se usa 4 como valor predeterminado.
+  const parsedUrl = url.parse(req.url, true);
+  const numberOfWords = parseInt(parsedUrl.query.x) || 4; //4 como valor default
 
-    // Genera una contraseña aleatoria seleccionando X palabras del diccionario.
+  if (parsedUrl.pathname === '/') {
     const password = generatePassword(numberOfWords);
-
-    // Envía la contraseña al cliente como respuesta.
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end(`Contraseña aleatoria: ${password}`);
+    res.end(`Contrasena aleatoria: ${password}`);
   } else {
     res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Página no encontrada');
+    res.end('Pagina no encontrada');
   }
 });
+
 
 function generatePassword(numberOfWords) {
   const passwordWords = [];
   for (let i = 0; i < numberOfWords; i++) {
-    const randomIndex = Math.floor(Math.random() * dictionary.length);
-    passwordWords.push(dictionary[randomIndex]);
+    const randomIndex = Math.floor(Math.random() * diccionario.length);
+    passwordWords.push(diccionario[randomIndex]);
   }
-  return passwordWords.join(' '); // Convierte las palabras en una sola cadena separada por espacios.
+  return passwordWords.join("").replace(/\s+/g, ''); 
 }
 
 const PORT = process.env.PORT || 3000;
